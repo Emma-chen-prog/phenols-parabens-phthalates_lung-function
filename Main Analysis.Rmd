@@ -1,0 +1,623 @@
+---
+title: "Main Analysis"
+author: "emma"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+NHANES data for children aged 6-19 collecting from 2007-12 have been collated and combined into a single table file.
+
+Including following data available on NHANES website (https://www.cdc.gov/nchs/nhanes/index.htm):
+1.Outcome[lung function]:Spirometry - Raw Curve Data (SPX_E,SPX_F,SPX_G).
+
+2.Exposure[phenols, parabens, and phthalates]:
+a.Environmental Phenols(EPH_E,EPH_F,EPH_G);
+b.Phthalates - Urine(PHTHTE_E,PHTHTE_F,PHTHTE_G).
+
+3.Covariates:
+a.Demographic Variables & Sample Weights(DEMO_E,DEMO_F,DEMO_G);
+b.Respiratory Health(RDQ_E,RDQ_F,RDQ_G);
+c.Cotinine - Serum & Total NNAL - Urine(COTNAL_E,COTNAL_F,COTNAL_G);
+d.Body Measures(BMX_E,BMX_F,BMX_G);
+e.Prescription Medications(RXQ_E,RXQ_F,RXQ_G).
+
+4.Immune cells:
+a.Complete Blood Count with 5-part Differential - Whole Blood(CBC_E,CBC_F,CBC_G);
+b.C-Reactive Protein (CRP)(CRP_E,CRP_F,CRP_G).
+
+
+Main Analyses include a.generalized regression model, b.Quantile g-computation, c.BKMR model, d.mediation analysis
+
+```{r Library Packages}
+library(readr)
+library(dplyr)
+library(tableone)
+library(psych) 
+library(jtools)
+library(qgcomp)
+library(ggplot2)
+library(bkmr)
+library(mediation)
+```
+
+
+```{r Import the collated data}
+a3 <- read_csv("D:/2022/R/all1007PPP&lung.csv")
+View(a3)
+
+```
+#The variable include in our analyses
+"SEQN","SDDSRVYR","RIDAGEYR","gender","age","PIR","race","wheeze",
+"Cotinine_group","BMI_group","cUBPA","ctOP4","cUTRS","cUBZ3","cUPPB","cUBUP",
+"cUEPB","cUMPB","cMCOP","cMCNP","cMECPP","cMBP","cMCPP","cMCHP","cMEP",         "cMEHHP","cMEHP","cMiBP","cMMP","cMEOHP","cMnOP","cMiNP","cMBzP",
+"log_UBPA","log_tOP4","log_UTRS","log_UBZ3","log_UPPB",       "log_UBUP","log_UEPB","log_UMPB","log_MCOP","log_MECPP",      "log_MBP","log_MCPP","log_MCHP","log_MEP","log_MEHHP","log_MEHP","log_MiBP",    "log_MMP","log_MEOHP","log_MnOP","log_MiNP","log_MBzP","URDBPHLC","URD4TOLC",
+"URDTRSLC","URDBP3LC", "URDPPBLC","URDBUPLC","URDEPBLC","URDMPBLC","URDCNPLC", "URDCOPLC","URDECPLC","URDMBPLC","URDMC1LC","URDMCPLC","URDMEPLC",     
+"URDMHHLC","URDMHPLC","URDMNMLC","URDMNPLC","URDMOHLC","URDMOPLC",     
+"URDMZPLC","URDMIBLC","SPXNFVC","SPXNFEV1","SPXNPEF","SPXNF257","SPXNQFVC"
+"LBDEONO","LBDNENO","LBXCRP","LBDLYMNO","LBDMONO"
+
+#The prefix "c" (e.g.cUBPA) implies a variable corrected for urinary creatinine concentration to allow for urinary dilution
+
+```{r Table 1}
+myVars <- c("SDDSRVYR","RIDAGEYR","gender","race","PIR","wheeze","Cotinine_group", "BMI_group")
+catVars <- c("SDDSRVYR", "gender", "race","PIR","wheeze","Cotinine_group", "BMI_group")
+
+table1 <- CreateTableOne(vars = myVars, data = a3, factorVars = catVars)
+print(table1, showAllLevels = TRUE, digits = 3)
+
+```
+
+```{r Table 2}
+# Distribution of the lung functions and chemical exposures in NHANES.
+#2.1 LLOD(%)
+library(tableone)
+CreateTableOne(data = a3,
+               vars = c("URDCNPLC","URDCOPLC","URDECPLC","URDMBPLC","URDMC1LC","URDMCPLC", "URDMEPLC","URDMHHLC","URDMHPLC","URDMNMLC","URDMNPLC","URDMOHLC",
+"URDMOPLC","URDMZPLC","URDMIBLC", "URDBPHLC", "URD4TOLC",
+"URDTRSLC","URDBP3LC","URDPPBLC","URDBUPLC", "URDEPBLC","URDMPBLC"),
+               factorVars = c("URDCNPLC","URDCOPLC","URDECPLC","URDMBPLC","URDMC1LC","URDMCPLC", "URDMEPLC","URDMHHLC","URDMHPLC","URDMNMLC","URDMNPLC","URDMOHLC",
+"URDMOPLC","URDMZPLC","URDMIBLC", "URDBPHLC", "URD4TOLC", "URDTRSLC","URDBP3LC","URDPPBLC","URDBUPLC", "URDEPBLC","URDMPBLC"))
+
+
+##2.2 GEOMETRY MEAN 
+geometric.mean(a3$cUBPA) 
+geometric.mean(a3$cUBZ3)
+geometric.mean(a3$cUPPB)
+geometric.mean(a3$cUMPB)
+geometric.mean(a3$cMCNP) 
+geometric.mean(a3$cMCOP) 
+geometric.mean(a3$cMECPP) 
+geometric.mean(a3$cMBP) 
+geometric.mean(a3$cMCPP) 
+geometric.mean(a3$cMEP) 
+geometric.mean(a3$cMEHHP) 
+geometric.mean(a3$cMiBP) 
+geometric.mean(a3$cMEOHP) 
+geometric.mean(a3$cMBzP) 
+  
+geometric.mean(a3$SPXNFEV1)
+geometric.mean(a3$SPXNFVC)
+geometric.mean(a3$SPXNF257)
+geometric.mean(a3$SPXNPEF)
+geometric.mean(a3$fev1fvc_ratio)
+
+##2.3 Percentiles
+quantile(a3$cUBPA, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cUBZ3, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cUPPB, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cUMPB, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMCNP, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMCOP, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMECPP, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMBP, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMCPP, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMEP, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMEHHP, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMiBP, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMEOHP, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$cMBzP, prob=c(.05,.25,.5,.75,.95))
+
+quantile(a3$SPXNFEV1, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$SPXNFVC, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$SPXNF257, prob=c(.05,.25,.5,.75,.95))
+quantile(a3$SPXNPEF, prob=c(.05,.25,.5,.75,.95))
+
+
+##2.4 mean
+round(mean(a3$cUBPA), 2)
+round(mean(a3$cUBZ3), 2)
+round(mean(a3$cUPPB), 2)
+round(mean(a3$cUMPB), 2)
+round(mean(a3$cMCNP), 2)
+round(mean(a3$cMCOP), 2)
+round(mean(a3$cMECPP), 2)
+round(mean(a3$cMBP), 2)
+round(mean(a3$cMCPP), 2)
+round(mean(a3$cMEP), 2)
+round(mean(a3$cMEHHP), 2)
+round(mean(a3$cMiBP), 2)
+round(mean(a3$cMEOHP), 2)
+round(mean(a3$cMBzP), 2)
+
+round(mean(a3$SPXNFEV1), 2)
+round(mean(a3$SPXNFVC), 2)
+round(mean(a3$SPXNF257), 2)
+round(mean(a3$SPXNPEF), 2)
+
+```
+
+```{r Table3}
+fit1<- glm(SPXNFEV1~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+           log_MCNP+log_MCOP+log_MECPP+log_MBP+
+           log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+           log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+PIR+wheeze+Cotinine_group+BMI_group ,a3, family=gaussian())
+summ(fit1,confint = TRUE, digits = 3)
+
+fit2<- glm(SPXNFVC~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+             log_MCNP+log_MCOP+log_MECPP+log_MBP+
+             log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+             log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+PIR+wheeze+Cotinine_group+BMI_group
+           ,a3, family=gaussian())
+summ(fit2,confint = TRUE, digits = 3)
+
+fit3<- glm(SPXNF257~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+             log_MCNP+log_MCOP+log_MECPP+log_MBP+
+             log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+             log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+PIR+wheeze+Cotinine_group+BMI_group
+           ,a3, family=gaussian())
+summ(fit3,confint = TRUE, digits = 3)
+
+fit4<- glm(SPXNPEF~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+             log_MCNP+log_MCOP+log_MECPP+log_MBP+
+             log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+             log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+PIR+wheeze+Cotinine_group+BMI_group
+           ,a3, family=gaussian())
+summ(fit4,confint = TRUE, digits = 3)
+
+table3<-jtools::export_summs(fit1,fit2,fit3,fit4,
+                     error_format = "[{conf.low}, {conf.high}]")
+table3
+
+
+##FDR
+overall_fev1<-c(0.002,0.290,0.027,0.114,0.012,0.370,0.007,0.991,
+0.459,0.383,0.283,0.872,0.019,0.435)
+p.adjust(overall_fev1,method="fdr",n=length(overall_fev1))
+
+overall_fvc<-c(0.004,0.278,0.020,0.051,0.042,
+0.446,0.004,0.979,0.368,0.336,0.265,0.972,0.010,0.406)
+p.adjust(overall_fvc,method="fdr",n=length(overall_fvc))
+
+overall_f257<-c(0.027,0.685,0.125,0.921,0.008,0.353,0.062,0.902,0.589,0.592,0.147,0.688,0.031,0.975)
+p.adjust(overall_f257,method="fdr",n=length(overall_f257))
+
+overall_pef<-c(0.001,0.562,0.064,0.866,0.282,0.327,0.328,0.998,0.811,0.095,0.006,0.340,0.001,0.525)
+p.adjust(overall_pef,method="fdr",n=length(overall_pef))
+```
+
+```{r Table 4; Figure 2; Table S3; Figure S2}
+library(dplyr)
+a4<-a3 %>% dplyr::select("SPXNFEV1","SPXNFVC","SPXNF257","SPXNPEF","log_UBPA", "log_UBZ3","log_UPPB","log_UMPB","log_MCNP", "log_MCOP", "log_MECPP", "log_MBP",
+"log_MCPP","log_MEP","log_MEHHP","log_MiBP","log_MEOHP","log_MBzP","SDDSRVYR",
+"RIDAGEYR","gender","race","BMI_group","Cotinine_group","PIR","wheeze","age")
+
+a4<-a4 %>% 
+ dplyr::rename("BPA" = "log_UBPA") %>% 
+  dplyr::rename("BP3" = "log_UBZ3") %>% 
+  dplyr::rename("PP" = "log_UPPB") %>% 
+  dplyr::rename("MP" = "log_UMPB") %>% 
+  dplyr::rename("MCNP" = "log_MCNP") %>% 
+  dplyr::rename("MCOP" = "log_MCOP") %>% 
+  dplyr::rename("MECPP" = "log_MECPP") %>% 
+  dplyr::rename("MBP" = "log_MBP") %>% 
+  dplyr::rename("MCPP" = "log_MCPP") %>% 
+  dplyr::rename("MEP" = "log_MEP") %>% 
+  dplyr::rename("MEHHP" = "log_MEHHP") %>% 
+  dplyr::rename("MiBP" = "log_MiBP") %>% 
+  dplyr::rename("MEOHP" = "log_MEOHP") %>% 
+  dplyr::rename("MBzP" = "log_MBzP") 
+
+
+library(qgcomp)
+set.seed(123)
+Xnm<-c("BPA", "BP3","PP","MP",
+       "MCNP", "MCOP", "MECPP", "MBP",
+       "MCPP","MEP","MEHHP","MiBP",    
+       "MEOHP","MBzP")
+covars<-c("SDDSRVYR","RIDAGEYR","gender","race","BMI_group","Cotinine_group","PIR","wheeze")
+#SPXNFEV1
+qc1_n <- qgcomp.noboot(SPXNFEV1~., dat=a4[,c(Xnm,covars,'SPXNFEV1')],
+                       expnms=Xnm, family=gaussian())
+qc1_n
+plot(qc1_n)
+qc1 <- qgcomp.boot(SPXNFEV1 ~BPA+BP3+PP+MP+
+                   MCNP+MCOP+MECPP+MBP+
+                   MCPP+MEP+MEHHP+MiBP+   
+                   MEOHP+MBzP
+                   +SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,
+                   expnms=Xnm, a4, family=gaussian(), q=4, B=5, MCsize = 500)
+plot(qc1)
+
+#SPXNFVC
+qc2_n <- qgcomp.noboot(SPXNFVC~., dat=a4[,c(Xnm,covars,'SPXNFVC')],
+                       expnms=Xnm, family=gaussian())
+qc2_n
+plot(qc2_n)
+qc2 <- qgcomp.boot(SPXNFVC~BPA+BP3+PP+MP+
+                   MCNP+MCOP+MECPP+MBP+
+                   MCPP+MEP+MEHHP+MiBP+   
+                   MEOHP+MBzP
+                   +SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,
+                   expnms=Xnm, a4, family=gaussian(), q=4,B=5, MCsize = 500)
+plot(qc2)
+
+
+#SPXNF257
+qc3_n <- qgcomp.noboot(SPXNF257~., dat=a4[,c(Xnm,covars,'SPXNF257')],
+                       expnms=Xnm, family=gaussian())
+qc3_n
+plot(qc3_n)
+qc3 <- qgcomp.boot(SPXNF257~BPA+BP3+PP+MP+
+                   MCNP+MCOP+MECPP+MBP+
+                   MCPP+MEP+MEHHP+MiBP+   
+                   MEOHP+MBzP
+                   +SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,
+                   expnms=Xnm, a4, family=gaussian(), q=4,B=5, MCsize = 500)
+qc3
+plot(qc3)
+
+
+#SPXNPEF
+qc4_n <- qgcomp.noboot(SPXNPEF~., dat=a4[,c(Xnm,covars,'SPXNPEF')],
+                       expnms=Xnm, family=gaussian())
+qc4_n
+plot(qc4_n)
+qc4 <- qgcomp.boot(SPXNPEF~BPA+BP3+PP+MP+
+                   MCNP+MCOP+MECPP+MBP+
+                   MCPP+MEP+MEHHP+MiBP+   
+                  MEOHP+MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,
+                   expnms=Xnm, a4, family=gaussian(), q=4)
+plot(qc4)
+```
+
+```{r Table 5}
+#PP→Neutrophils→FEV1
+fit.mediator1=lm(LBDNENO~log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+
+fit.dv=lm(SPXNFEV1~LBDNENO+log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+
+results11 = mediate(fit.mediator1, fit.dv, treat='log_UPPB', mediator='LBDNENO', boot=T, sims = 5000)
+summary(results11)
+
+#PP→Neutrophils→FVC
+fit.mediator2=lm(LBDNENO~log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+
+fit.dv=lm(SPXNFVC~LBDNENO+log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+
+results12 = mediate(fit.mediator2, fit.dv, treat='log_UPPB', mediator='LBDNENO', boot=T,sims = 5000)
+summary(results12)
+
+
+#PP→Monocyte→FEV1
+fit.mediator3=lm(LBDMONO~log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+
+fit.dv=lm(SPXNFEV1~LBDMONO+log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+
+results13 = mediate(fit.mediator3, fit.dv, treat='log_UPPB', mediator='LBDMONO', boot=T, sims = 5000)
+summary(results13)
+
+
+#PP→Monocyte→FVC
+fit.mediator4=lm(LBDMONO~log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+
+fit.dv=lm(SPXNFVC~LBDMONO+log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+
+results14 = mediate(fit.mediator4, fit.dv, treat='log_UPPB', mediator='LBDMONO', boot=T,sims = 5000)
+summary(results12)
+```
+
+```{r Figure 3&4; Table S4; Figure 3-7}
+#group1:log_UBPA,log_UBZ3
+#group2:log_UPPB,log_UMPB
+#group3:log_MCNP,log_MCOP,log_MECPP,log_MBP,log_MCPP,
+#       log_MEP,log_MEHHP,log_MiBP,log_MEOHP,log_MBzP
+
+
+#1.FEV1
+Y<-a3$SPXNFEV1
+Z<-a3 %>% dplyr::select("BPA","BP3","PP","MP","MCNP","MCOP",
+                 "MECPP","MBP","MCPP","MEP","MEHHP","MiBP","MEOHP","MBzP")
+Z<-as.matrix(Z)
+names <- c('SDDSRVYR','gender','PIR','race','Cotinine_group','wheeze')
+a4[,names] <- sapply(a4[,names] , as.numeric)
+
+X<-a3 %>% dplyr::select(SDDSRVYR,RIDAGEYR,gender,race,BMI_group,Cotinine_group,PIR,wheeze)
+x<-as.matrix(X)
+knots100  <- fields::cover.design(Z, nd = 50)$design 
+set.seed(123)
+hier_FEV1<-  kmbayes(y=Y, Z=Z, X=x, iter=10000, 
+                     verbose=FALSE, varsel=TRUE,  knots=knots100, 
+                     groups=c(1,1,2,2,3,3,3,3,3,3,3,3,3,3))
+
+
+
+#evaluate the convergence of the parameters
+TracePlot(fit = hier_FEV1, par = "beta")
+TracePlot(fit = hier_FEV1, par = "sigsq.eps")
+TracePlot(fit = hier_FEV1, par = "r", comp = 1)
+##expect here is some kind of random behaving around a straight line
+
+#Estimated posterior inclusion probabilities
+ExtractPIPs(hier_FEV1)
+
+pred.resp.univar <- PredictorResponseUnivar(fit=hier_FEV1, method="approx")
+
+
+pred.resp.bivar  <- PredictorResponseBivar(fit=hier_FEV1,  min.plot.dist = 1, 
+                                           method="approx")
+
+pred.resp.bivar.levels <- PredictorResponseBivarLevels(pred.resp.df=pred.resp.bivar, Z = Z, both_pairs=TRUE,  qs = c(0.25, 0.5, 0.75))
+
+risks.overall <- OverallRiskSummaries(fit=hier_FEV1, qs=seq(0.25, 0.75, by=0.05),  q.fixed = 0.5, method = "approx")
+
+risks.singvar <- SingVarRiskSummaries(fit=hier_FEV1, qs.diff = c(0.25, 0.75),
+                                      q.fixed = c(0.25, 0.50, 0.75), 
+                                      method = "approx")
+
+risks.int <- SingVarIntSummaries(fit=hier_FEV1, qs.diff = c(0.25, 0.75),
+                                 qs.fixed = c(0.25, 0.75))
+
+#univariate dose-responses
+ggplot(pred.resp.univar, aes(z, est, ymin = est - 1.96*se, 
+                             ymax = est + 1.96*se)) + 
+  geom_smooth(stat = "identity") + ylab("h(z)") + facet_wrap(~ variable) + theme_bw() 
+
+#Bivariable Exposure-Response Functions
+ggplot(pred.resp.bivar, aes(z1, z2, fill = est)) + 
+  geom_raster() + 
+  facet_grid(variable2 ~ variable1) +
+  scale_fill_gradientn(colours=c("#0000FFFF","#FFFFFFFF","#FF0000FF")) +
+  xlab("expos1") +
+  ylab("expos2") +
+  ggtitle("h(expos1, expos2)")+ theme_bw() 
+#Interactions
+ggplot(pred.resp.bivar.levels, aes(z1, est)) + 
+  geom_smooth(aes(col = quantile), stat = "identity") + 
+  facet_grid(variable2 ~ variable1) +
+  ggtitle("h(expos1 | quantiles of expos2)") +
+  xlab("expos1")+ theme_bw() 
+
+#Overall Mixture Effect
+ggplot(risks.overall, aes(quantile, est, ymin = est - 1.96*sd, 
+                          ymax = est + 1.96*sd)) +  
+  geom_hline(yintercept=00, linetype="dashed", color="gray") + 
+  geom_pointrange() + scale_y_continuous(name="estimate") + theme_bw() 
+
+
+#Single Variables effects
+ggplot(risks.singvar, aes(variable, est, ymin = est - 1.96*sd,  
+                          ymax = est + 1.96*sd, col = q.fixed)) + 
+  geom_hline(aes(yintercept=0), linetype="dashed", color="gray") +  
+  geom_pointrange(position = position_dodge(width = 0.75)) +
+  coord_flip() + theme(legend.position="none")+scale_x_discrete(name="") +
+  scale_y_continuous(name="estimate") + theme_bw() 
+
+
+#Single Variable Interaction Terms
+ggplot(risks.int, aes(variable, est, ymin = est - 1.96*sd, 
+                      ymax = est + 1.96*sd)) + 
+  geom_pointrange(position = position_dodge(width = 0.75)) + 
+  geom_hline(yintercept = 0, lty = 2, col = "brown") + coord_flip()+ theme_bw()
+
+
+#2.FVC
+Y<-a3$SPXNFVC
+set.seed(123)
+hier_FVC<-  kmbayes(y=Y, Z=Z, X=x, iter=10000, 
+                     verbose=FALSE, varsel=TRUE,  knots=knots100, 
+                     groups=c(1,1,2,2,3,3,3,3,3,3,3,3,3,3))
+
+
+TracePlot(fit = hier_FVC, par = "beta")
+TracePlot(fit = hier_FVC, par = "sigsq.eps")
+TracePlot(fit = hier_FVC, par = "r", comp = 1)
+
+ExtractPIPs(hier_FVC)
+pred.resp.univar2 <- PredictorResponseUnivar(fit=hier_FVC, method="approx")
+pred.resp.bivar2  <- PredictorResponseBivar(fit=hier_FVC,  min.plot.dist = 1, 
+                                           method="approx")
+
+pred.resp.bivar.levels2 <- PredictorResponseBivarLevels(pred.resp.df=pred.resp.bivar2, Z = Z, both_pairs=TRUE,  qs = c(0.25, 0.5, 0.75))
+
+risks.overall2 <- OverallRiskSummaries(fit=hier_FVC, qs=seq(0.25, 0.75, by=0.05),  q.fixed = 0.5, method = "approx")
+
+risks.singvar2 <- SingVarRiskSummaries(fit=hier_FVC, qs.diff = c(0.25, 0.75),
+                                      q.fixed = c(0.25, 0.50, 0.75), 
+                                      method = "approx")
+
+risks.int2 <- SingVarIntSummaries(fit=hier_FVC, qs.diff = c(0.25, 0.75),
+                                 qs.fixed = c(0.25, 0.75))
+
+
+ggplot(pred.resp.univar2, aes(z, est, ymin = est - 1.96*se, 
+                             ymax = est + 1.96*se)) + 
+  geom_smooth(stat = "identity") + ylab("h(z)") + facet_wrap(~ variable) + theme_bw() 
+
+
+ggplot(pred.resp.bivar2, aes(z1, z2, fill = est)) + 
+  geom_raster() + 
+  facet_grid(variable2 ~ variable1) +
+  scale_fill_gradientn(colours=c("#0000FFFF","#FFFFFFFF","#FF0000FF")) +
+  xlab("expos1") +
+  ylab("expos2") +
+  ggtitle("h(expos1, expos2)")+ theme_bw() 
+
+ggplot(pred.resp.bivar.levels2, aes(z1, est)) + 
+  geom_smooth(aes(col = quantile), stat = "identity") + 
+  facet_grid(variable2 ~ variable1) +
+  ggtitle("h(expos1 | quantiles of expos2)") +
+  xlab("expos1")+ theme_bw() 
+
+
+ggplot(risks.overall2, aes(quantile, est, ymin = est - 1.96*sd, 
+                          ymax = est + 1.96*sd)) +  
+  geom_hline(yintercept=00, linetype="dashed", color="gray") + 
+  geom_pointrange() + scale_y_continuous(name="estimate") + theme_bw() 
+
+ggplot(risks.singvar2, aes(variable, est, ymin = est - 1.96*sd,  
+                          ymax = est + 1.96*sd, col = q.fixed)) + 
+  geom_hline(aes(yintercept=0), linetype="dashed", color="gray") +  
+  geom_pointrange(position = position_dodge(width = 0.75)) +
+  coord_flip() + theme(legend.position="none")+scale_x_discrete(name="") +
+  scale_y_continuous(name="estimate") + theme_bw() 
+
+
+ggplot(risks.int2, aes(variable, est, ymin = est - 1.96*sd, 
+                      ymax = est + 1.96*sd)) + 
+  geom_pointrange(position = position_dodge(width = 0.75)) + 
+  geom_hline(yintercept = 0, lty = 2, col = "brown") + coord_flip()+ theme_bw()
+
+
+##3.F257
+Y<-a3$SPXNF257
+set.seed(123)
+hier_F257<-  kmbayes(y=Y, Z=Z, X=x, iter=10000, 
+                     verbose=FALSE, varsel=TRUE,  knots=knots100, 
+                     groups=c(1,1,2,2,3,3,3,3,3,3,3,3,3,3))
+
+TracePlot(fit = hier_F257, par = "beta")
+TracePlot(fit = hier_F257, par = "sigsq.eps")
+TracePlot(fit = hier_F257, par = "r", comp = 1)
+
+ExtractPIPs(hier_F257)
+pred.resp.univar3 <- PredictorResponseUnivar(fit=hier_F257, method="approx")
+pred.resp.bivar3  <- PredictorResponseBivar(fit=hier_F257,  min.plot.dist = 1, method="approx")
+pred.resp.bivar.levels3 <- PredictorResponseBivarLevels(pred.resp.df=pred.resp.bivar3, Z = Z, both_pairs=TRUE,  qs = c(0.25, 0.5, 0.75))
+
+risks.overall3 <- OverallRiskSummaries(fit=hier_F257, qs=seq(0.25, 0.75, by=0.05),  q.fixed = 0.5, method = "approx")
+
+risks.singvar3 <- SingVarRiskSummaries(fit=hier_F257, qs.diff = c(0.25, 0.75),
+                                      q.fixed = c(0.25, 0.50, 0.75), 
+                                      method = "approx")
+
+risks.int3 <- SingVarIntSummaries(fit=hier_F257, qs.diff = c(0.25, 0.75),
+                                 qs.fixed = c(0.25, 0.75))
+
+
+ggplot(pred.resp.univar3, aes(z, est, ymin = est - 1.96*se, 
+                             ymax = est + 1.96*se)) + 
+  geom_smooth(stat = "identity") + ylab("h(z)") + facet_wrap(~ variable)+ theme_bw()
+
+
+ggplot(pred.resp.bivar3, aes(z1, z2, fill = est)) + 
+  geom_raster() + 
+  facet_grid(variable2 ~ variable1) +
+  scale_fill_gradientn(colours=c("#0000FFFF","#FFFFFFFF","#FF0000FF")) +
+  xlab("expos1") +
+  ylab("expos2") +
+  ggtitle("h(expos1, expos2)")+ theme_bw()  
+
+ggplot(pred.resp.bivar.levels3, aes(z1, est)) + 
+  geom_smooth(aes(col = quantile), stat = "identity") + 
+  facet_grid(variable2 ~ variable1) +
+  ggtitle("h(expos1 | quantiles of expos2)") +
+  xlab("expos1")+ theme_bw()  
+
+
+ggplot(risks.overall3, aes(quantile, est, ymin = est - 1.96*sd, 
+                          ymax = est + 1.96*sd)) +  
+  geom_hline(yintercept=00, linetype="dashed", color="gray") + 
+  geom_pointrange() + scale_y_continuous(name="estimate") + theme_bw()  
+
+
+
+ggplot(risks.singvar3, aes(variable, est, ymin = est - 1.96*sd,  
+                          ymax = est + 1.96*sd, col = q.fixed)) + 
+  geom_hline(aes(yintercept=0), linetype="dashed", color="gray") +  
+  geom_pointrange(position = position_dodge(width = 0.75)) +
+  coord_flip() + theme(legend.position="none")+scale_x_discrete(name="") +
+  scale_y_continuous(name="estimate") + theme_bw()  
+
+
+
+ggplot(risks.int3, aes(variable, est, ymin = est - 1.96*sd, 
+                      ymax = est + 1.96*sd)) + 
+  geom_pointrange(position = position_dodge(width = 0.75)) + 
+  geom_hline(yintercept = 0, lty = 2, col = "brown") + coord_flip()+ theme_bw()
+
+
+#4.PEF
+Y<-a3$SPXNPEF
+set.seed(123)
+hier_PEF<-  kmbayes(y=Y, Z=Z, X=x, iter=10000, 
+                     verbose=FALSE, varsel=TRUE,  knots=knots100, 
+                     groups=c(1,1,2,2,3,3,3,3,3,3,3,3,3,3))
+
+
+TracePlot(fit = hier_PEF, par = "beta")
+TracePlot(fit = hier_PEF, par = "sigsq.eps")
+TracePlot(fit = hier_PEF, par = "r", comp = 1)
+
+ExtractPIPs(hier_PEF)
+
+pred.resp.univar4 <- PredictorResponseUnivar(fit=hier_PEF, method="approx")
+
+
+pred.resp.bivar4  <- PredictorResponseBivar(fit=hier_PEF,  min.plot.dist = 1, 
+                                           method="approx")
+pred.resp.bivar.levels4 <- PredictorResponseBivarLevels(pred.resp.df=pred.resp.bivar4, Z = Z, both_pairs=TRUE,  qs = c(0.25, 0.5, 0.75))
+
+risks.overall4 <- OverallRiskSummaries(fit=hier_PEF, qs=seq(0.25, 0.75, by=0.05),  q.fixed = 0.5, method = "approx")
+
+risks.singvar4 <- SingVarRiskSummaries(fit=hier_PEF, qs.diff = c(0.25, 0.75),
+                                      q.fixed = c(0.25, 0.50, 0.75), 
+                                      method = "approx")
+
+risks.int4 <- SingVarIntSummaries(fit=hier_PEF, qs.diff = c(0.25, 0.75),
+                                 qs.fixed = c(0.25, 0.75))
+
+
+ggplot(pred.resp.univar4, aes(z, est, ymin = est - 1.96*se, 
+                             ymax = est + 1.96*se)) + 
+  geom_smooth(stat = "identity") + ylab("h(z)") + facet_wrap(~ variable) + theme_bw() 
+
+
+ggplot(pred.resp.bivar4, aes(z1, z2, fill = est)) + 
+  geom_raster() + 
+  facet_grid(variable2 ~ variable1) +
+  scale_fill_gradientn(colours=c("#0000FFFF","#FFFFFFFF","#FF0000FF")) +
+  xlab("expos1") +
+  ylab("expos2") +
+  ggtitle("h(expos1, expos2)")+ theme_bw() 
+
+ggplot(pred.resp.bivar.levels4, aes(z1, est)) + 
+  geom_smooth(aes(col = quantile), stat = "identity") + 
+  facet_grid(variable2 ~ variable1) +
+  ggtitle("h(expos1 | quantiles of expos2)") +
+  xlab("expos1")+ theme_bw() 
+
+
+ggplot(risks.overall4, aes(quantile, est, ymin = est - 1.96*sd, 
+                          ymax = est + 1.96*sd)) +  
+  geom_hline(yintercept=00, linetype="dashed", color="gray") + 
+  geom_pointrange() + scale_y_continuous(name="estimate")+ theme_bw()  
+
+
+
+ggplot(risks.singvar4, aes(variable, est, ymin = est - 1.96*sd,  
+                          ymax = est + 1.96*sd, col = q.fixed)) + 
+  geom_hline(aes(yintercept=0), linetype="dashed", color="gray") +  
+  geom_pointrange(position = position_dodge(width = 0.75)) +
+  coord_flip() + theme(legend.position="none")+scale_x_discrete(name="") +
+  scale_y_continuous(name="estimate") + theme_bw() 
+
+
+
+ggplot(risks.int4, aes(variable, est, ymin = est - 1.96*sd, 
+                      ymax = est + 1.96*sd)) + 
+  geom_pointrange(position = position_dodge(width = 0.75)) + 
+  geom_hline(yintercept = 0, lty = 2, col = "brown") + coord_flip()+ theme_bw()
+```
+
+
+

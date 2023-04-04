@@ -1,0 +1,488 @@
+---
+title: "Supplemental Material"
+author: "emma"
+date: "`r Sys.Date()`"
+output: html_document
+---
+Supplemental Material include subgroup analyses, generalized additive regression, correlation plot.
+
+```{r Library Packages}
+library(dplyr)
+library(jtools)
+library(mgcv)
+library(mediation)
+```
+
+
+```{r Table S1}
+##age subgroup
+#6-11
+fit1a<- glm(SPXNFEV1~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+             log_MCNP+log_MCOP+log_MECPP+log_MBP+
+             log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+             log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3,subset=age==1, family=gaussian())
+summ(fit1a,confint = TRUE, digits = 3)
+
+fit2a<- glm(SPXNFVC~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+             log_MCNP+log_MCOP+log_MECPP+log_MBP+
+             log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+             log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze
+           ,a3,subset=age==1, family=gaussian())
+summ(fit2a,confint = TRUE, digits = 3)
+
+fit3a<- glm(SPXNF257~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+             log_MCNP+log_MCOP+log_MECPP+log_MBP+
+             log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+             log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze
+           ,a3,subset=age==1, family=gaussian())
+summ(fit3a,confint = TRUE, digits = 3)
+
+fit4a<- glm(SPXNPEF~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+             log_MCNP+log_MCOP+log_MECPP+log_MBP+
+             log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+             log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze
+           ,a3,subset=age==1, family=gaussian())
+summ(fit4a,confint = TRUE, digits = 3)
+
+tableS1a<-jtools::export_summs(fit1a,fit2a,fit3a,fit4a,
+                     error_format = "[{conf.low}, {conf.high}]")
+tableS1a
+
+
+#12-19
+fit1b<- glm(SPXNFEV1~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+              log_MCNP+log_MCOP+log_MECPP+log_MBP+
+              log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+              log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze
+            ,a3,subset=age=="2", family=gaussian())
+
+summ(fit1b,confint = TRUE, digits = 3)
+
+fit2b<- glm(SPXNFVC~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+              log_MCNP+log_MCOP+log_MECPP+log_MBP+
+              log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+              log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze
+            ,a3,subset=age=="2", family=gaussian())
+summ(fit2b,confint = TRUE, digits = 3)
+
+fit3b<- glm(SPXNF257~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+              log_MCNP+log_MCOP+log_MECPP+log_MBP+
+              log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+              log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze
+            ,a3,subset=age=="2", family=gaussian())
+summ(fit3b,confint = TRUE, digits = 3)
+
+fit4b<- glm(SPXNPEF~log_UBPA+log_UBZ3+log_UPPB+log_UMPB+
+              log_MCNP+log_MCOP+log_MECPP+log_MBP+
+              log_MCPP+log_MEP+log_MEHHP+log_MiBP+   
+              log_MEOHP+log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze
+            ,a3,subset=age=="2", family=gaussian())
+summ(fit4b,confint = TRUE, digits = 3)
+
+tableS1b<-jtools::export_summs(fit1b,fit2b,fit3b,fit4b,
+                     error_format = "[{conf.low}, {conf.high}]")
+tableS1b
+
+
+
+##FDR
+#6-11
+children_fev1<-c(0.450,0.019,0.025,0.945,0.202,0.602,0.359,0.402,0.496,0.308,0.283,0.373,0.690,0.372)
+p.adjust(children_fev1,method="fdr",n=length(children_fev1))
+
+children_fvc<-c(0.273,0.006,0.038,0.817,0.195,0.944,0.335,0.620,0.509,0.410,0.308,0.698,0.722,0.233)
+p.adjust(children_fvc,method="fdr",n=length(children_fvc))
+
+children_f257<-c(0.962,0.371,0.056,0.655,0.491,0.194,0.692,0.449,0.449,0.305,0.571,0.138,0.842,0.788)
+p.adjust(children_f257,method="fdr",n=length(children_f257))
+
+children_pef<-c(0.364,0.065,0.317,0.783,0.559,0.490,0.595,0.667,0.651,0.115,0.966,0.306,0.925,0.951)
+p.adjust(children_pef,method="fdr",n=length(children_pef))
+
+
+#12-19
+adoles_fev1<-c(0.013,0.356,0.918,0.055,0.157,0.394,0.017,0.752,0.216,0.880,0.087,0.891,0.004,0.508)
+p.adjust(adoles_fev1,method="fdr",n=length(adoles_fev1))
+
+adoles_fvc<-c(0.049,0.336,0.933,0.021,0.432,0.321,0.009,0.920,0.135,0.935,0.079,0.974,0.002,0.565)
+p.adjust(adoles_fvc,method="fdr",n=length(adoles_fvc))
+
+adoles_f257<-c(0.038,0.660,0.844,0.655,0.017,0.766,0.089,0.803,0.527,0.949,0.061,0.729,0.012,0.955)
+p.adjust(adoles_f257,method="fdr",n=length(adoles_f257))
+
+adoles_pef<-c(0.011,0.711,0.815,0.773,0.672,0.352,0.266,0.998,0.579,0.541,0.003,0.171,0.001,0.255)
+p.adjust(adoles_pef,method="fdr",n=length(adoles_pef))
+```
+
+
+```{r Figure S1}
+X_corr <- a3 %>% 
+  dplyr::select(log_UBPA,log_UBZ3,log_UPPB,log_UMPB,
+                  log_MCNP,log_MCOP,log_MECPP,log_MBP,
+                  log_MCPP,log_MEP,log_MEHHP,log_MiBP,   
+                  log_MEOHP,log_MBzP)
+X_corr<-X_corr %>% 
+  dplyr::rename("BPA" = "log_UBPA") %>% 
+  dplyr::rename("BP3" = "log_UBZ3") %>% 
+  dplyr::rename("PP" = "log_UPPB") %>% 
+  dplyr::rename("MP" = "log_UMPB") %>% 
+  dplyr::rename("MCNP" = "log_MCNP") %>% 
+  dplyr::rename("MCOP" = "log_MCOP") %>% 
+  dplyr::rename("MECPP" = "log_MECPP") %>% 
+  dplyr::rename("MBP" = "log_MBP") %>% 
+  dplyr::rename("MCPP" = "log_MCPP") %>% 
+  dplyr::rename("MEP" = "log_MEP") %>% 
+  dplyr::rename("MEHHP" = "log_MEHHP") %>% 
+  dplyr::rename("MiBP" = "log_MiBP") %>% 
+  dplyr::rename("MEOHP" = "log_MEOHP") %>% 
+  dplyr::rename("MBzP" = "log_MBzP")  %>% 
+  stats::cor(use="pairwise.complete.obs")
+
+X_corr 
+X_corr  %>% 
+  corrplot::corrplot.mixed(upper = "ellipse")
+```
+
+
+```{r TableS5; FigureS8-11}
+gam1 <- gam(SPXNFEV1 ~ s(log_UBPA)+s(log_UBZ3)+s(log_UPPB)+s(log_UMPB)+
+              s(log_MCNP)+s(log_MCOP)+s(log_MECPP)+s(log_MBP)+
+              s(log_MCPP)+s(log_MEP)+s(log_MEHHP)+s(log_MiBP)+   
+              s(log_MEOHP)+s(log_MBzP)+
+              ti(log_UBPA,log_UMPB)+ti(log_UBPA,log_UPPB)+
+            SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,
+            data = a3, method = "REML")
+summary(gam1)
+plot(gam1)
+vis.gam(gam1)
+
+gam2 <- gam(SPXNFVC ~ s(log_UBPA)+s(log_UBZ3)+s(log_UPPB)+s(log_UMPB)+
+              s(log_MCNP)+s(log_MCOP)+s(log_MECPP)+s(log_MBP)+
+              s(log_MCPP)+s(log_MEP)+s(log_MEHHP)+s(log_MiBP)+   
+              s(log_MEOHP)+s(log_MBzP)+
+              ti(log_UBPA,log_UMPB)+ti(log_UBPA,log_UPPB)+
+            SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,
+            data = a3, method = "REML")
+summary(gam2)
+plot(gam2)
+
+
+gam3 <- gam(SPXNF257 ~s(log_UBPA)+s(log_UBZ3)+s(log_UPPB)+s(log_UMPB)+
+              s(log_MCNP)+s(log_MCOP)+s(log_MECPP)+s(log_MBP)+
+              s(log_MCPP)+s(log_MEP)+s(log_MEHHP)+s(log_MiBP)+   
+              s(log_MEOHP)+s(log_MBzP)+ti(log_UBPA,log_MCNP)+
+            SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,
+            data = a3, method = "REML")
+summary(gam3)
+plot(gam3)
+
+gam4 <- gam(SPXNPEF ~s(log_UBPA)+s(log_UBZ3)+s(log_UPPB)+s(log_UMPB)+
+              s(log_MCNP)+s(log_MCOP)+s(log_MECPP)+s(log_MBP)+
+              s(log_MCPP)+s(log_MEP)+s(log_MEHHP)+s(log_MiBP)+   
+              s(log_MEOHP)+s(log_MBzP)+
+            SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,
+            data = a3, method = "REML")
+summary(gam4)
+plot(gam4)
+
+```
+
+```{r TableS6-7}
+#1.LBDEONO(Eosinophil)
+fit.mediator11=lm(LBDEONO~log_UBPA+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator11,confint = TRUE, digits = 3)
+
+fit.mediator12=lm(LBDEONO~log_UBZ3+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator12,confint = TRUE, digits = 3)
+
+fit.mediator13=lm(LBDEONO~log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator13,confint = TRUE, digits = 3)
+
+
+fit.mediator14=lm(LBDEONO~log_UMPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator14,confint = TRUE, digits = 3)
+
+fit.mediator15=lm(LBDEONO~log_MCNP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator15,confint = TRUE, digits = 3)
+
+fit.mediator16=lm(LBDEONO~log_MCOP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator16,confint = TRUE, digits = 3)
+
+
+fit.mediator17=lm(LBDEONO~log_MECPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator17,confint = TRUE, digits = 3)
+
+fit.mediator18=lm(LBDEONO~log_MBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator18,confint = TRUE, digits = 3)
+
+fit.mediator19=lm(LBDEONO~log_MCPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator19,confint = TRUE, digits = 3)
+
+fit.mediator20=lm(LBDEONO~log_MEP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator20,confint = TRUE, digits = 3)
+
+
+fit.mediator21=lm(LBDEONO~log_MEHHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator21,confint = TRUE, digits = 3)
+
+fit.mediator22=lm(LBDEONO~log_MiBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator22,confint = TRUE, digits = 3)
+
+fit.mediator23=lm(LBDEONO~log_MEOHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator23,confint = TRUE, digits = 3)
+
+fit.mediator24=lm(LBDEONO~log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator24,confint = TRUE, digits = 3)
+
+
+
+#2.LBDNENO(Neutrophil)
+fit.mediator11=lm(LBDNENO~log_UBPA+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator11,confint = TRUE, digits = 3)
+
+fit.mediator12=lm(LBDNENO~log_UBZ3+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator12,confint = TRUE, digits = 3)
+
+fit.mediator13=lm(LBDNENO~log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator13,confint = TRUE, digits = 3)
+
+
+fit.mediator14=lm(LBDNENO~log_UMPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator14,confint = TRUE, digits = 3)
+
+fit.mediator15=lm(LBDNENO~log_MCNP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator15,confint = TRUE, digits = 3)
+
+fit.mediator16=lm(LBDNENO~log_MCOP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator16,confint = TRUE, digits = 3)
+
+
+fit.mediator17=lm(LBDNENO~log_MECPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator17,confint = TRUE, digits = 3)
+
+fit.mediator18=lm(LBDNENO~log_MBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator18,confint = TRUE, digits = 3)
+
+fit.mediator19=lm(LBDNENO~log_MCPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator19,confint = TRUE, digits = 3)
+
+fit.mediator20=lm(LBDNENO~log_MEP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator20,confint = TRUE, digits = 3)
+
+
+fit.mediator21=lm(LBDNENO~log_MEHHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator21,confint = TRUE, digits = 3)
+
+fit.mediator22=lm(LBDNENO~log_MiBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator22,confint = TRUE, digits = 3)
+
+fit.mediator23=lm(LBDNENO~log_MEOHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator23,confint = TRUE, digits = 3)
+
+fit.mediator24=lm(LBDNENO~log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator24,confint = TRUE, digits = 3)
+
+
+#3.LBXCRP
+fit.mediator11=lm(LBXCRP~log_UBPA+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator11,confint = TRUE, digits = 3)
+
+fit.mediator12=lm(LBXCRP~log_UBZ3+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator12,confint = TRUE, digits = 3)
+
+fit.mediator13=lm(LBXCRP~log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator13,confint = TRUE, digits = 3)
+
+
+fit.mediator14=lm(LBXCRP~log_UMPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator14,confint = TRUE, digits = 3)
+
+fit.mediator15=lm(LBXCRP~log_MCNP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a5)
+summ(fit.mediator15,confint = TRUE, digits = 3)
+
+fit.mediator16=lm(LBXCRP~log_MCOP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator16,confint = TRUE, digits = 3)
+
+
+fit.mediator17=lm(LBXCRP~log_MECPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator17,confint = TRUE, digits = 3)
+
+fit.mediator18=lm(LBXCRP~log_MBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator18,confint = TRUE, digits = 3)
+
+fit.mediator19=lm(LBXCRP~log_MCPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator19,confint = TRUE, digits = 3)
+
+fit.mediator20=lm(LBXCRP~log_MEP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator20,confint = TRUE, digits = 3)
+
+
+
+fit.mediator21=lm(LBXCRP~log_MEHHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator21,confint = TRUE, digits = 3)
+
+fit.mediator22=lm(LBXCRP~log_MiBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator22,confint = TRUE, digits = 3)
+
+fit.mediator23=lm(LBXCRP~log_MEOHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator23,confint = TRUE, digits = 3)
+
+fit.mediator24=lm(LBXCRP~log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator24,confint = TRUE, digits = 3)
+
+
+#4.LBDLYMNO(Lymphocyte)
+fit.mediator11=lm(LBDLYMNO~log_UBPA+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator11,confint = TRUE, digits = 3)
+
+fit.mediator12=lm(LBDLYMNO~log_UBZ3+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator12,confint = TRUE, digits = 3)
+
+fit.mediator13=lm(LBDLYMNO~log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator13,confint = TRUE, digits = 3)
+
+
+fit.mediator14=lm(LBDLYMNO~log_UMPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator14,confint = TRUE, digits = 3)
+
+fit.mediator15=lm(LBDLYMNO~log_MCNP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator15,confint = TRUE, digits = 3)
+
+fit.mediator16=lm(LBDLYMNO~log_MCOP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator16,confint = TRUE, digits = 3)
+
+
+fit.mediator17=lm(LBDLYMNO~log_MECPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator17,confint = TRUE, digits = 3)
+
+fit.mediator18=lm(LBDLYMNO~log_MBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator18,confint = TRUE, digits = 3)
+
+fit.mediator19=lm(LBDLYMNO~log_MCPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator19,confint = TRUE, digits = 3)
+
+fit.mediator20=lm(LBDLYMNO~log_MEP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator20,confint = TRUE, digits = 3)
+
+
+
+fit.mediator21=lm(LBDLYMNO~log_MEHHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator21,confint = TRUE, digits = 3)
+
+fit.mediator22=lm(LBDLYMNO~log_MiBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator22,confint = TRUE, digits = 3)
+
+fit.mediator23=lm(LBDLYMNO~log_MEOHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator23,confint = TRUE, digits = 3)
+
+fit.mediator24=lm(LBDLYMNO~log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator24,confint = TRUE, digits = 3)
+
+
+#5.LBDMONO(Monocyte)
+fit.mediator11=lm(LBDMONO~log_UBPA+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator11,confint = TRUE, digits = 3)
+
+fit.mediator12=lm(LBDMONO~log_UBZ3+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator12,confint = TRUE, digits = 3)
+
+fit.mediator13=lm(LBDMONO~log_UPPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator13,confint = TRUE, digits = 3)
+
+
+fit.mediator14=lm(LBDMONO~log_UMPB+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator14,confint = TRUE, digits = 3)
+
+fit.mediator15=lm(LBDMONO~log_MCNP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator15,confint = TRUE, digits = 3)
+
+fit.mediator16=lm(LBDMONO~log_MCOP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator16,confint = TRUE, digits = 3)
+
+
+fit.mediator17=lm(LBDMONO~log_MECPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator17,confint = TRUE, digits = 3)
+
+fit.mediator18=lm(LBDMONO~log_MBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator18,confint = TRUE, digits = 3)
+
+fit.mediator19=lm(LBDMONO~log_MCPP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator19,confint = TRUE, digits = 3)
+
+fit.mediator20=lm(LBDMONO~log_MEP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator20,confint = TRUE, digits = 3)
+
+
+
+fit.mediator21=lm(LBDMONO~log_MEHHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator21,confint = TRUE, digits = 3)
+
+fit.mediator22=lm(LBDMONO~log_MiBP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator22,confint = TRUE, digits = 3)
+
+fit.mediator23=lm(LBDMONO~log_MEOHP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator23,confint = TRUE, digits = 3)
+
+fit.mediator24=lm(LBDMONO~log_MBzP+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.mediator24,confint = TRUE, digits = 3)
+
+
+
+
+#1.LBDEONO(Eosinophil)
+fit.dv1=lm(SPXNFEV1~LBDEONO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv1,confint = TRUE, digits = 3)
+
+fit.dv2=lm(SPXNFVC~LBDEONO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv2,confint = TRUE, digits = 3)
+
+fit.dv3=lm(SPXNF257~LBDEONO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv3,confint = TRUE, digits = 3)
+
+fit.dv4=lm(SPXNPEF~LBDEONO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv4,confint = TRUE, digits = 3)
+
+
+#2.LBDNENO(Neutrophil)
+fit.dv5=lm(SPXNFEV1~LBDNENO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv5,confint = TRUE, digits = 3)
+
+fit.dv6=lm(SPXNFVC~LBDNENO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv6,confint = TRUE, digits = 3)
+
+fit.dv7=lm(SPXNF257~LBDNENO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a5)
+summ(fit.dv7,confint = TRUE, digits = 3)
+
+fit.dv8=lm(SPXNPEF~LBDNENO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv8,confint = TRUE, digits = 3)
+
+
+
+#3.LBDLYMNO(Lymphocyte)
+fit.dv9=lm(SPXNFEV1~LBDLYMNO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv9,confint = TRUE, digits = 3)
+
+fit.dv10=lm(SPXNFVC~LBDLYMNO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv10,confint = TRUE, digits = 3)
+
+fit.dv11=lm(SPXNF257~LBDLYMNO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv11,confint = TRUE, digits = 3)
+
+fit.dv12=lm(SPXNPEF~LBDLYMNO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv12,confint = TRUE, digits = 3)
+
+#4.LBDMONO(Monocyte)
+fit.dv13=lm(SPXNFEV1~LBDMONO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv13,confint = TRUE, digits = 3)
+
+fit.dv14=lm(SPXNFVC~LBDMONO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv14,confint = TRUE, digits = 3)
+
+fit.dv15=lm(SPXNF257~LBDMONO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv15,confint = TRUE, digits = 3)
+
+fit.dv16=lm(SPXNPEF~LBDMONO+SDDSRVYR+RIDAGEYR+gender+race+BMI_group+Cotinine_group+PIR+wheeze,a3)
+summ(fit.dv16,confint = TRUE, digits = 3)
+
+```
+
